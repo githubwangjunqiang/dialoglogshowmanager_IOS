@@ -346,7 +346,53 @@ ShowLogConfigBuilder *builder = [[ShowLogConfigBuilder alloc] init];
 
 ---
 
-## 10. API 核心参考速查表
+## 10. 代码混淆与安全加固配置（Anti-Obfuscation Rules）
+
+### 10.1 SDK 内部抗混淆设计
+* **零运行时字符串反射**：SDK 内部完全杜绝 `NSClassFromString`、`NSSelectorFromString` 及 Swift `Mirror`，网络日志数据层使用强类型原生 `libsqlite3` C API 显式参数绑定，天然免疫因类名、字段名混淆导致的反序列化或反射崩溃。
+* **强类型静态绑定**：所有核心模型采用强类型属性，不受 Swift 编译器优化或 Name Mangling 剥离影响。
+
+### 10.2 宿主 App 使用混淆工具时的白名单配置（Keep 规则）
+
+如果宿主工程使用了**符号混淆工具**（如 SwiftShield、Hikari、OLLVM 或自研基于宏定义的符号替换工具），请按以下规则配置白名单：
+
+#### 1. SwiftShield 混淆忽略
+在 SwiftShield 配置文件中排除 `ShowLog` 模块：
+```text
+--ignore-modules ShowLog
+```
+
+#### 2. 自研宏混淆 / 符号混淆（Symbol Obfuscation 白名单）
+ShowLog 在自动网络拦截中使用了针对 `URLSessionConfiguration` 的 Method Swizzling，请**严禁混淆以下选择器与核心入口类名**：
+```c
+// 保持 ShowLog 核心门面与配置类
+ShowLog
+ShowLogConfig
+ShowLogConfigBuilder
+HttpLogRecord
+HttpLogPayload
+
+// 保持网络 Swizzling 方法签名（避免 Method Swizzling 交换失败）
+showlog_defaultSessionConfiguration
+showlog_ephemeralSessionConfiguration
+```
+
+### 10.3 生产环境安全与代码剥离最佳实践
+ShowLog 专为内部研发、QA 测试与灰度诊断设计。在正式上架 App Store 时，推荐通过编译宏确保 SDK 零侵入与零符号泄露：
+```swift
+#if DEBUG
+import ShowLog
+#endif
+
+// 业务调用处
+#if DEBUG
+ShowLog.initialize(...)
+#endif
+```
+
+---
+
+## 11. API 核心参考速查表
 
 ### 顶层门面方法 (`ShowLog`)
 
