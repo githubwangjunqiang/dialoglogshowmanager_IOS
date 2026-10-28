@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   DESC
   s.homepage         = 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 'githubwangjunqiang' => 'wangjunqiang@songguo7.com' }
+  s.author           = { 'githubwangjunqiang' => '19901021qiang@gmail.com' }
   s.source           = { :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '13.0'
