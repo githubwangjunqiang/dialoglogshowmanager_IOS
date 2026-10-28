@@ -121,17 +121,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 ### 4.1 引入依赖
 
 #### Swift Package Manager (SPM) - 推荐
-在 Xcode 中选择 `File` -> `Add Package Dependencies...`，填入 Git 仓库地址或选择本地 Package：
+在 Xcode 中选择 `File` -> `Add Package Dependencies...`，填入 Git 仓库地址：
+```text
+https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git
+```
+或在 `Package.swift` 中添加：
 ```swift
 dependencies: [
-    .package(url: "https://github.com/your-org/ShowLog-iOS.git", from: "6.0.0")
+    .package(url: "https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git", from: "6.0.0")
 ]
 ```
 
 #### CocoaPods
-在 `Podfile` 中添加：
+在 `Podfile` 中添加（支持 Git 直引或官方源）：
 ```ruby
-pod 'ShowLog', '~> 6.0.0'
+# Git 直引方式
+pod 'ShowLog', :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => '6.0.0'
+
+# 或发布至公共源后使用：
+# pod 'ShowLog', '~> 6.0.0'
 ```
 随后执行：
 ```bash

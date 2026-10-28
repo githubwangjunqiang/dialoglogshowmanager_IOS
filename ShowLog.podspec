@@ -10,10 +10,10 @@ Pod::Spec.new do |s|
   - 业务自定义扩展面板与防路径穿越的只读沙盒文件浏览/流式预览
   - 免权限全局吸边悬浮球与生产环境零开销直通模式
   DESC
-  s.homepage         = 'https://github.com/xq/ShowLog'
+  s.homepage         = 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS'
   s.license          = { :type => 'MIT', :file => 'LICENSE' }
-  s.author           = { 'ShowLog Team' => 'dev@example.com' }
-  s.source           = { :git => 'https://github.com/xq/ShowLog-iOS.git', :tag => s.version.to_s }
+  s.author           = { 'githubwangjunqiang' => 'wangjunqiang@songguo7.com' }
+  s.source           = { :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => s.version.to_s }
 
   s.ios.deployment_target = '13.0'
   s.swift_version         = '5.9'
