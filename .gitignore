@@ -1,0 +1,26 @@
+# Xcode
+## User settings
+xcuserdata/
+*.xcscmblueprint
+*.xcuserstate
+
+## Build products
+DerivedData/
+build/
+DerivedData.noindex/
+*.moved-builder
+
+## Swift Package Manager
+.build/
+.swiftpm/
+
+## CocoaPods
+Pods/
+
+## General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Temp / Local
+agy-temp/
