@@ -398,7 +398,7 @@ public final class HttpLogSqliteHelper: NSObject {
         let isFailedInt = sqlite3_column_int(statement, 19)
         let success = sqlite3_column_type(statement, 7) != SQLITE_NULL ? (successInt == 1) : (isFailedInt == 0)
         let rawMessage = readColumnText(statement, index: 8)
-        let message = (rawMessage?.isEmpty == false) ? rawMessage! : (success ? "OK" : "FAILED")
+        let message = (rawMessage?.isEmpty == false ? rawMessage : nil) ?? (success ? "OK" : "FAILED")
         let requestHeaders = readColumnText(statement, index: 9)
         let requestBody = readColumnText(statement, index: 10)
         let responseHeaders = readColumnText(statement, index: 11)

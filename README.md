@@ -132,7 +132,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 #### 方式一：CocoaPods（官方公共源 - 推荐）
 ShowLog 已正式发布至 CocoaPods 官方 Specs 中心，在工程的 `Podfile` 中添加：
 ```ruby
-pod 'DialogLogShowManager', '~> 6.0.0'
+pod 'DialogLogShowManager', '~> 6.0.1'
 ```
 随后在终端执行：
 ```bash
@@ -150,18 +150,18 @@ pod install --repo-update
 ```text
 https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git
 ```
-在版本规则选择 **Exact: 6.0.0** 或 **Up to Next Major**。  
+在版本规则选择 **Exact: 6.0.1** 或 **Up to Next Major**。  
 若使用 `Package.swift` 管理依赖，请添加：
 ```swift
 dependencies: [
-    .package(url: "https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git", from: "6.0.0")
+    .package(url: "https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git", from: "6.0.1")
 ]
 ```
 
 #### 方式三：CocoaPods Git 直引方式
 如果不需要公共源索引，也可以直接指向 GitHub 仓库：
 ```ruby
-pod 'ShowLog', :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => '6.0.0'
+pod 'ShowLog', :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => '6.0.1'
 ```
 
 ### 4.2 配置参数全解 (`ShowLogConfig.Builder`)

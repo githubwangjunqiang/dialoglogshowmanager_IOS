@@ -48,7 +48,7 @@ public final class FileBrowserView: UIView, UITableViewDataSource, UITableViewDe
         fatalError("init(coder:) has not been implemented")
     }
 
-    public func release() {
+    public func teardown() {
         isReleased = true
         loadGeneration += 1
         activePreviewVC?.dismiss(animated: false)

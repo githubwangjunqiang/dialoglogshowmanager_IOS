@@ -331,4 +331,27 @@ final class ShowLogTests: XCTestCase {
         let count = (sessionCfg.protocolClasses ?? []).filter { $0 == ShowLogURLProtocol.self }.count
         XCTAssertEqual(count, 1)
     }
+
+    // MARK: - 10. Hub 视图与子面板生命周期（防 ObjC -release 递归冲突回归测试）
+
+    func testHubLifecycleAndPanelTeardown() {
+        #if canImport(UIKit)
+        let customView = CustomPanelPageView(frame: CGRect(x: 0, y: 0, width: 300, height: 400))
+        XCTAssertNotNil(customView)
+        customView.renderCustomContent()
+        customView.teardown()
+
+        let tempDir = NSTemporaryDirectory()
+        let fileBrowserView = FileBrowserView(rootPath: tempDir)
+        XCTAssertNotNil(fileBrowserView)
+        fileBrowserView.teardown()
+
+        let config = ShowLogConfig.Builder()
+            .fileBrowserRootPath(tempDir)
+            .build()
+        let hub = ShowLogHubViewController(initialTab: ShowLogHubViewController.TAB_CUSTOM, config: config)
+        _ = hub.view // 触发 loadView / viewDidLoad 与 setupPages
+        hub.dismiss(animated: false)
+        #endif
+    }
 }

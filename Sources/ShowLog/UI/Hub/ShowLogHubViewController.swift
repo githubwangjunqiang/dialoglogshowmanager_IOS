@@ -85,8 +85,8 @@ public final class ShowLogHubViewController: UIViewController, UIScrollViewDeleg
 
     private func releaseSubPanels() {
         deviceView?.setDeviceTabActive(false)
-        customView?.release()
-        fileBrowserView?.release()
+        customView?.teardown()
+        fileBrowserView?.teardown()
     }
 
     private func setupHubLayout() {

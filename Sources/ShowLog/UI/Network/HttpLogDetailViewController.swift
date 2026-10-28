@@ -310,7 +310,8 @@ public final class HttpLogDetailViewController: UIViewController {
         sb += "• 发起时间: \(timeStr)\n"
         sb += "• 请求体大小: \(record.requestSize) bytes\n"
         sb += "• 响应体大小: \(record.responseSize) bytes\n"
-        sb += "• 报文类型: \((record.contentType?.isEmpty == false) ? record.contentType! : "N/A")\n"
+        let contentTypeStr = (record.contentType?.isEmpty == false) ? (record.contentType ?? "N/A") : "N/A"
+        sb += "• 报文类型: \(contentTypeStr)\n"
         if let err = record.errorMessage, !err.isEmpty {
             sb += "\n⚠️ 异常警告:\n\(err)\n"
         }

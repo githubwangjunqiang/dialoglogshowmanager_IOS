@@ -49,9 +49,11 @@ public final class ShareHelper: NSObject {
             }
             // iPad 强制配置 popoverPresentationController，彻底杜绝 iPad 下弹出崩溃
             if let popover = activityVC.popoverPresentationController {
-                let anchor = sourceView ?? presenter.view!
-                popover.sourceView = anchor
-                popover.sourceRect = CGRect(x: anchor.bounds.midX, y: anchor.bounds.midY, width: 1, height: 1)
+                let anchor = sourceView ?? presenter.viewIfLoaded ?? presenter.view
+                if let anchor = anchor {
+                    popover.sourceView = anchor
+                    popover.sourceRect = CGRect(x: anchor.bounds.midX, y: anchor.bounds.midY, width: 1, height: 1)
+                }
                 popover.permittedArrowDirections = .any
             }
             activityVC.completionWithItemsHandler = { _, completed, _, _ in

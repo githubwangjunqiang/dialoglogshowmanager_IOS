@@ -5,7 +5,7 @@ import UIKit
 /// 自定义扩展面板承载视图（1:1 对齐 Android `CustomPanelPageView.java`）。
 /// 为什么这样做：
 /// 1. 同一弹框实例生命周期内切换 Tab 仅回调一次 `onCreateView`，保持业务面板内部输入框、开关状态不丢失；
-/// 2. 弹框关闭时统一调用 `release()` -> `onDestroyView()`；
+/// 2. 弹框关闭时统一调用 `teardown()` -> `onDestroyView()`；
 /// 3. 未注册自定义扩展时展示内置暗黑接入指南与代码示例。
 @objcMembers
 public final class CustomPanelPageView: UIView {
@@ -14,7 +14,7 @@ public final class CustomPanelPageView: UIView {
     private var registration: CustomPanelManager.Registration?
     private var boundProvider: CustomPanelProvider?
     private var isBinding = false
-    private var releasePending = false
+    private var teardownPending = false
 
     private let contentContainer = UIView()
     private let emptyGuideScroll = UIScrollView()
@@ -132,15 +132,15 @@ public final class CustomPanelPageView: UIView {
         provider.onCreateView(parent: contentContainer, dialogController: hostVC)
         isBinding = false
 
-        if releasePending {
-            releasePending = false
-            release()
+        if teardownPending {
+            teardownPending = false
+            teardown()
         }
     }
 
-    public func release() {
+    public func teardown() {
         if isBinding {
-            releasePending = true
+            teardownPending = true
             return
         }
         releaseBoundPanel()

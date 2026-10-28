@@ -187,6 +187,9 @@ public final class AppDeviceInfoCollector: NSObject {
         }
         let level = UIDevice.current.batteryLevel
         let state = UIDevice.current.batteryState
+        if !wasBatteryEnabled {
+            UIDevice.current.isBatteryMonitoringEnabled = false
+        }
         let stateDesc: String
         switch state {
         case .charging: stateDesc = "充电中"
