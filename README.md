@@ -1,5 +1,10 @@
 # ShowLog iOS SDK 开发者接入指南
 
+[![CocoaPods](https://img.shields.io/cocoapods/v/DialogLogShowManager.svg?style=flat)](https://cocoapods.org/pods/DialogLogShowManager)
+[![Platform](https://img.shields.io/badge/platform-iOS%2013.0%2B-blue.svg)](https://cocoapods.org/pods/DialogLogShowManager)
+[![SPM](https://img.shields.io/badge/SPM-supported-brightgreen.svg)](https://swift.org/package-manager/)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 > **1:1 像素级对标 Android ShowLog v6.0**  
 > 纯原生 Swift 5.9+ / UIKit 构建，零第三方依赖，专为 iOS 研发、测试与自动化诊断打造的轻量级全景可视化调试工具。
 
@@ -15,7 +20,8 @@
 7. [ShowLog Hub 调试中枢、自定义面板与沙盒文件浏览](#7-showlog-hub-调试中枢自定义面板与沙盒文件浏览)
 8. [生产包安全、App Store 提审合规与零开销保障](#8-生产包安全app-store-提审合规与零开销保障)
 9. [Swift / Objective-C 混编与符号说明](#9-swift--objective-c-混编与符号说明)
-10. [API 核心参考速查表](#10-api-核心参考速查表)
+10. [代码混淆与安全加固配置（Anti-Obfuscation Rules）](#10-代码混淆与安全加固配置anti-obfuscation-rules)
+11. [API 核心参考速查表](#11-api-核心参考速查表)
 
 ---
 
@@ -123,36 +129,40 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
 ### 4.1 引入依赖
 
-#### Swift Package Manager (SPM) - 推荐
+#### 方式一：CocoaPods（官方公共源 - 推荐）
+ShowLog 已正式发布至 CocoaPods 官方 Specs 中心，在工程的 `Podfile` 中添加：
+```ruby
+pod 'DialogLogShowManager', '~> 6.0.0'
+```
+随后在终端执行：
+```bash
+pod install --repo-update
+```
+
+> **注意**：由于 CocoaPods 官方源全局名称唯一性，Pod 注册库名为 `DialogLogShowManager`。  
+> 内部已显式绑定 `s.module_name = 'ShowLog'`，因此在 Swift 代码中均直接使用统一模块名：
+> ```swift
+> import ShowLog
+> ```
+
+#### 方式二：Swift Package Manager (SPM 原生接入)
 在 Xcode 中选择 `File` -> `Add Package Dependencies...`，填入 Git 仓库地址：
 ```text
 https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git
 ```
-或在 `Package.swift` 中添加：
+在版本规则选择 **Exact: 6.0.0** 或 **Up to Next Major**。  
+若使用 `Package.swift` 管理依赖，请添加：
 ```swift
 dependencies: [
     .package(url: "https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git", from: "6.0.0")
 ]
 ```
 
-#### CocoaPods
-在 `Podfile` 中添加（支持公共源或 Git 直引）：
+#### 方式三：CocoaPods Git 直引方式
+如果不需要公共源索引，也可以直接指向 GitHub 仓库：
 ```ruby
-# 1. CocoaPods 公共源引入（推荐）：
-pod 'DialogLogShowManager', '~> 6.0.0'
-
-# 2. 或 Git 直引方式：
-# pod 'ShowLog', :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => '6.0.0'
+pod 'ShowLog', :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => '6.0.0'
 ```
-随后执行：
-```bash
-pod install
-```
-
-> **提示**：无论通过 SPM 还是 CocoaPods 引入，在 Swift 代码中均直接使用统一模块名：
-> ```swift
-> import ShowLog
-> ```
 
 ### 4.2 配置参数全解 (`ShowLogConfig.Builder`)
 
