@@ -66,10 +66,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         #if DEBUG
         // 1. 构建配置
         let config = ShowLogConfig.Builder()
-            .enabled(true)                       // 开启调试功能
-            .showFloatWindow(true)               // 显示吸边悬浮球
-            .autoCaptureNetwork(true)            // 自动拦截网络请求
-            .maxRecordCount(500)                 // 最大保留 500 条日志
+            .enabled(true)                                   // 开启调试功能
+            .showFloatingView(true)                          // 显示吸边悬浮球
+            .enableURLSessionSwizzling(true)                 // 自动拦截 URLSession 网络请求
+            .maxDatabaseLogLimit(10000)                      // 数据库最大保留条数（默认 10000）
+            .maxBodyBytes(256 * 1024)                        // 单条报文截断保护（256KB）
+            .addRedactHeader("Authorization")                // 敏感请求头脱敏
             .build()
 
         // 2. 初始化 ShowLog
@@ -91,8 +93,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     #if DEBUG
     ShowLogConfigBuilder *builder = [[ShowLogConfigBuilder alloc] init];
     [builder enabled:YES];
-    [builder showFloatWindow:YES];
-    [builder autoCaptureNetwork:YES];
+    [builder showFloatingView:YES];
+    [builder enableURLSessionSwizzling:YES];
+    [builder maxDatabaseLogLimit:10000];
     
     ShowLogConfig *config = [builder build];
     [ShowLog initializeWithConfig:config];
@@ -133,42 +136,43 @@ dependencies: [
 ```
 
 #### CocoaPods
-在 `Podfile` 中添加（支持 Git 直引或官方源）：
+在 `Podfile` 中添加（支持公共源或 Git 直引）：
 ```ruby
-# Git 直引方式
-pod 'ShowLog', :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => '6.0.0'
+# 1. CocoaPods 公共源引入（推荐）：
+pod 'DialogLogShowManager', '~> 6.0.0'
 
-# 或发布至公共源后使用：
-# pod 'ShowLog', '~> 6.0.0'
+# 2. 或 Git 直引方式：
+# pod 'ShowLog', :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => '6.0.0'
 ```
 随后执行：
 ```bash
 pod install
 ```
 
+> **提示**：无论通过 SPM 还是 CocoaPods 引入，在 Swift 代码中均直接使用统一模块名：
+> ```swift
+> import ShowLog
+> ```
+
 ### 4.2 配置参数全解 (`ShowLogConfig.Builder`)
 
 | 方法 | 类型 | 默认值 | 说明 |
 |:---|:---|:---|:---|
-| `enabled(Bool)` | `Bool` | `true` | 全局总开关。设为 `false` 则激活零开销直通模式 |
-| `showFloatWindow(Bool)` | `Bool` | `true` | 是否在应用启动时自动展示悬浮球 |
-| `autoCaptureNetwork(Bool)` | `Bool` | `true` | 是否自动拦截原生 `URLSession` 请求 |
-| `maxRecordCount(Int)` | `Int` | `1000` | 数据库最大记录上限（100 ~ 10,000，超出自动 LRU 修剪） |
-| `maxBodyLength(Int)` | `Int` | `262,144` | 单条请求/响应 Body 截断大小（字节），默认 256KB |
-| `batchFlushIntervalMs(Int)` | `Int` | `500` | 内存待落盘队列定时刷盘间隔（100ms ~ 5,000ms） |
-| `shakeToOpen(Bool)` | `Bool` | `true` | 是否监听设备物理摇一摇手势呼出 Hub |
-| `enableAppInfo(Bool)` | `Bool` | `true` | 是否启用设备诊断信息面板 |
-| `enableFileBrowser(Bool)` | `Bool` | `true` | 是否启用沙盒文件只读浏览器 |
-| `enableCustomPanels(Bool)` | `Bool` | `true` | 是否启用开发者自定义面板注入能力 |
-| `filterUrlPatterns([String])` | `[String]` | `[]` | 黑名单正则/包含匹配，匹配到的 URL 不记录日志 |
-| `businessJudger(HttpLogBusinessJudger?)` | 闭包协议 | `nil` | 自定义 HTTP 业务成功/失败裁决器 |
+| `enabled(Bool)` | `Bool` | `true` | 全局总开关。设为 `false` 则激活零开销直通模式，悬浮球与拦截器全部静默 |
+| `showFloatingView(Bool)` | `Bool` | `true` | 是否在应用启动时自动在屏幕上展示免权限吸边悬浮球 |
+| `enableURLSessionSwizzling(Bool)` | `Bool` | `true` | 是否自动将拦截器注入至 `URLSessionConfiguration.default` 与 `.ephemeral` |
+| `maxDatabaseLogLimit(Int)` | `Int` | `10000` | SQLite 数据库最多保留的历史日志条数（范围 100 ~ 50,000，超出自动 LRU 清理） |
+| `maxBodyBytes(Int)` | `Int` | `262,144` | 单条请求/响应 Body 截断保护上限（字节），默认 256KB（最低钳制 1024 字节） |
+| `addRedactHeader(String)` | `String` | 常见 Auth 头 | 添加需要打码脱敏的敏感 Header（默认已包含 Authorization, Cookie, Token 等） |
+| `fileBrowserRootPath(String?)` | `String?` | `nil` | 沙盒文件浏览 Tab 的根目录路径；若为 `nil` 或空字符串则不展示文件浏览 Tab |
+| `fileBrowserTabTitle(String?)` | `String?` | `nil` | 文件浏览 Tab 的自定义显示标题；若为 `nil` 回退展示“文件浏览” |
 
 ---
 
 ## 5. URLSession / Alamofire 网络日志自动拦截与业务裁决
 
 ### 5.1 自动拦截原理
-初始化 `ShowLog` 时，若 `autoCaptureNetwork` 为 `true`，SDK 会自动将 `ShowLogURLProtocol` 注入至 `URLSessionConfiguration.default` 与 `ephemeral` 中。
+初始化 `ShowLog` 时，若 `enableURLSessionSwizzling` 为 `true`（默认），SDK 会自动将 `ShowLogURLProtocol` 注入至 `URLSessionConfiguration.default` 与 `ephemeral` 中。
 
 使用 `URLSession.shared` 或默认配置初始化的 `Alamofire.Session` 无需任何额外配置，网络日志会自动落盘并展示。
 
@@ -301,8 +305,8 @@ let isDebug = false
 
 ShowLog.initialize(config: ShowLogConfig.Builder()
     .enabled(isDebug)
-    .showFloatWindow(isDebug)
-    .autoCaptureNetwork(isDebug)
+    .showFloatingView(isDebug)
+    .enableURLSessionSwizzling(isDebug)
     .build())
 ```
 
@@ -334,7 +338,8 @@ ShowLog 采用纯 Swift 编写，并对所有核心入口标注了 `@objc` 属�
 // 1. 初始化
 ShowLogConfigBuilder *builder = [[ShowLogConfigBuilder alloc] init];
 [builder enabled:YES];
-[builder showFloatWindow:YES];
+[builder showFloatingView:YES];
+[builder enableURLSessionSwizzling:YES];
 [ShowLog initializeWithConfig:[builder build]];
 
 // 2. 调出调试中枢
