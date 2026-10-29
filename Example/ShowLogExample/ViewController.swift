@@ -13,7 +13,7 @@ final class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "ShowLog iOS v6.0 演示中枢"
+        title = "ShowLog iOS 演示中枢"
         view.backgroundColor = UIColor(red: 0.08, green: 0.08, blue: 0.10, alpha: 1.0)
         setupDemoUI()
     }

@@ -22,8 +22,10 @@ public final class HttpLogFlatCell: UITableViewCell {
     public var onLongPressDelete: ((HttpLogRecord) -> Void)?
 
     private let cardView = UIView()
+    private let statusBadgeView = UIView()
     private let statusLabel = UILabel()
     private let methodLabel = UILabel()
+    private let durationLabel = UILabel()
     private let timeLabel = UILabel()
     private let urlLabel = UILabel()
     private var currentRecord: HttpLogRecord?
@@ -50,14 +52,24 @@ public final class HttpLogFlatCell: UITableViewCell {
         cardView.translatesAutoresizingMaskIntoConstraints = false
         contentView.addSubview(cardView)
 
-        statusLabel.font = UIFont.systemFont(ofSize: 11, weight: .bold)
+        statusBadgeView.layer.cornerRadius = 4
+        statusBadgeView.clipsToBounds = true
+        statusBadgeView.translatesAutoresizingMaskIntoConstraints = false
+
+        statusLabel.font = UIFont.systemFont(ofSize: 10, weight: .bold)
+        statusLabel.textAlignment = .center
         statusLabel.setContentHuggingPriority(.required, for: .horizontal)
         statusLabel.translatesAutoresizingMaskIntoConstraints = false
+        statusBadgeView.addSubview(statusLabel)
 
-        methodLabel.font = UIFont.systemFont(ofSize: 12, weight: .bold)
+        methodLabel.font = UIFont.systemFont(ofSize: 12, weight: .heavy)
         methodLabel.textColor = ShowLogTheme.textMethod
         methodLabel.setContentHuggingPriority(.required, for: .horizontal)
         methodLabel.translatesAutoresizingMaskIntoConstraints = false
+
+        durationLabel.font = ShowLogTheme.monospacedFont(size: 11, weight: .medium)
+        durationLabel.textColor = ShowLogTheme.textSecondary
+        durationLabel.translatesAutoresizingMaskIntoConstraints = false
 
         timeLabel.font = ShowLogTheme.monospacedFont(size: 11, weight: .regular)
         timeLabel.textColor = ShowLogTheme.textSecondary
@@ -70,8 +82,9 @@ public final class HttpLogFlatCell: UITableViewCell {
         urlLabel.lineBreakMode = .byCharWrapping
         urlLabel.translatesAutoresizingMaskIntoConstraints = false
 
-        cardView.addSubview(statusLabel)
+        cardView.addSubview(statusBadgeView)
         cardView.addSubview(methodLabel)
+        cardView.addSubview(durationLabel)
         cardView.addSubview(timeLabel)
         cardView.addSubview(urlLabel)
 
@@ -81,17 +94,26 @@ public final class HttpLogFlatCell: UITableViewCell {
             cardView.leadingAnchor.constraint(equalTo: contentView.leadingAnchor, constant: 8),
             cardView.trailingAnchor.constraint(equalTo: contentView.trailingAnchor, constant: -8),
 
-            statusLabel.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 8),
-            statusLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 10),
+            statusBadgeView.topAnchor.constraint(equalTo: cardView.topAnchor, constant: 8),
+            statusBadgeView.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 10),
+            statusBadgeView.heightAnchor.constraint(equalToConstant: 18),
 
-            methodLabel.centerYAnchor.constraint(equalTo: statusLabel.centerYAnchor),
-            methodLabel.leadingAnchor.constraint(equalTo: statusLabel.trailingAnchor, constant: 8),
+            statusLabel.topAnchor.constraint(equalTo: statusBadgeView.topAnchor, constant: 1),
+            statusLabel.bottomAnchor.constraint(equalTo: statusBadgeView.bottomAnchor, constant: -1),
+            statusLabel.leadingAnchor.constraint(equalTo: statusBadgeView.leadingAnchor, constant: 5),
+            statusLabel.trailingAnchor.constraint(equalTo: statusBadgeView.trailingAnchor, constant: -5),
 
-            timeLabel.centerYAnchor.constraint(equalTo: statusLabel.centerYAnchor),
-            timeLabel.leadingAnchor.constraint(greaterThanOrEqualTo: methodLabel.trailingAnchor, constant: 8),
+            methodLabel.centerYAnchor.constraint(equalTo: statusBadgeView.centerYAnchor),
+            methodLabel.leadingAnchor.constraint(equalTo: statusBadgeView.trailingAnchor, constant: 8),
+
+            timeLabel.centerYAnchor.constraint(equalTo: statusBadgeView.centerYAnchor),
             timeLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -10),
 
-            urlLabel.topAnchor.constraint(equalTo: statusLabel.bottomAnchor, constant: 6),
+            durationLabel.centerYAnchor.constraint(equalTo: statusBadgeView.centerYAnchor),
+            durationLabel.trailingAnchor.constraint(equalTo: timeLabel.leadingAnchor, constant: -8),
+            durationLabel.leadingAnchor.constraint(greaterThanOrEqualTo: methodLabel.trailingAnchor, constant: 6),
+
+            urlLabel.topAnchor.constraint(equalTo: statusBadgeView.bottomAnchor, constant: 6),
             urlLabel.leadingAnchor.constraint(equalTo: cardView.leadingAnchor, constant: 10),
             urlLabel.trailingAnchor.constraint(equalTo: cardView.trailingAnchor, constant: -10),
             urlLabel.bottomAnchor.constraint(equalTo: cardView.bottomAnchor, constant: -8)
@@ -106,10 +128,21 @@ public final class HttpLogFlatCell: UITableViewCell {
         self.currentRecord = record
         cardView.backgroundColor = isChildItem ? ShowLogTheme.bgPrimary : ShowLogTheme.bgCard
 
-        statusLabel.text = record.success ? "成功" : "失败"
-        statusLabel.textColor = record.success ? ShowLogTheme.status2xx : ShowLogTheme.status5xx
+        if record.success {
+            statusBadgeView.backgroundColor = ShowLogTheme.color(hex: 0x064E3B, alpha: 0.65)
+            statusLabel.textColor = ShowLogTheme.status2xx
+            let codeText = record.statusCode > 0 ? "\(record.statusCode)" : "OK"
+            statusLabel.text = codeText
+        } else {
+            statusBadgeView.backgroundColor = ShowLogTheme.color(hex: 0x7F1D1D, alpha: 0.65)
+            statusLabel.textColor = ShowLogTheme.status5xx
+            let codeText = record.statusCode > 0 ? "\(record.statusCode)" : "ERR"
+            statusLabel.text = codeText
+        }
 
         methodLabel.text = record.method
+        durationLabel.text = "\(record.durationMs)ms"
+
         let date = Date(timeIntervalSince1970: TimeInterval(record.timestamp) / 1000.0)
         timeLabel.text = Self.timeFormatter.string(from: date)
 

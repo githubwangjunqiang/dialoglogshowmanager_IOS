@@ -351,6 +351,15 @@ final class ShowLogTests: XCTestCase {
             .build()
         let hub = ShowLogHubViewController(initialTab: ShowLogHubViewController.TAB_CUSTOM, config: config)
         _ = hub.view // 触发 loadView / viewDidLoad 与 setupPages
+        hub.view.frame = CGRect(x: 0, y: 0, width: 375, height: 667)
+        hub.view.layoutIfNeeded()
+
+        // 验证切换 Tab 时能够安全触发居中计算且不抛出任何异常
+        hub.selectTab(ShowLogHubViewController.TAB_FILE_BROWSER, animated: false)
+        XCTAssertEqual(hub.currentTab, ShowLogHubViewController.TAB_FILE_BROWSER)
+        hub.selectTab(ShowLogHubViewController.TAB_DEVICE, animated: false)
+        XCTAssertEqual(hub.currentTab, ShowLogHubViewController.TAB_DEVICE)
+
         hub.dismiss(animated: false)
         #endif
     }

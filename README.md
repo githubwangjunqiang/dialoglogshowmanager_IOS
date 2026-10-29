@@ -132,7 +132,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 #### 方式一：CocoaPods（官方公共源 - 推荐）
 ShowLog 已正式发布至 CocoaPods 官方 Specs 中心，在工程的 `Podfile` 中添加：
 ```ruby
-pod 'DialogLogShowManager', '~> 6.0.1'
+pod 'DialogLogShowManager', '~> 6.0.2'
 ```
 随后在终端执行：
 ```bash
@@ -150,18 +150,18 @@ pod install --repo-update
 ```text
 https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git
 ```
-在版本规则选择 **Exact: 6.0.1** 或 **Up to Next Major**。  
+在版本规则选择 **Exact: 6.0.2** 或 **Up to Next Major**。  
 若使用 `Package.swift` 管理依赖，请添加：
 ```swift
 dependencies: [
-    .package(url: "https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git", from: "6.0.1")
+    .package(url: "https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git", from: "6.0.2")
 ]
 ```
 
 #### 方式三：CocoaPods Git 直引方式
 如果不需要公共源索引，也可以直接指向 GitHub 仓库：
 ```ruby
-pod 'ShowLog', :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => '6.0.1'
+pod 'ShowLog', :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => '6.0.2'
 ```
 
 ### 4.2 配置参数全解 (`ShowLogConfig.Builder`)
@@ -251,11 +251,16 @@ ShowLog.record(payload: CustomNetworkEvent())
 ## 7. ShowLog Hub 调试中枢、自定义面板与沙盒文件浏览
 
 ### 7.1 调试中枢概览
-ShowLog Hub 包含四个原生模块：
-1. **Network（网络控制台）**：支持扁平列表与 Path 路径分组切换、实时关键字模糊检索、日期日历筛选、一键清空日志。点选任意请求可查看 Request / Response / Headers / cURL 命令复制。
-2. **Device（设备诊断看板）**：展示设备型号、系统版本、屏幕物理分辨率、CPU 核心数与瞬时负载、当前 App 物理内存驻留（Resident Memory）、沙盒磁盘空间、电量等。点击顶部“导出诊断报告”可一键生成 Markdown 格式报告并调用系统分享。
-3. **FileBrowser（沙盒只读浏览）**：可视化浏览 App 沙盒目录，32KB 分页流式加载纯文本与 JSON，防止读取大日志文件撑爆内存。
-4. **Custom Panels（自定义面板）**：业务方自由注入的扩展工具集合。
+ShowLog Hub 包含四个原生模块，并在交互与视觉上深度优化：
+* **智能滑动居中页签（Tab Auto-Center）**：顶部页签栏在点击或切换时，自动将目标 Tab 平滑滑动至视口正中央，完美适配带岛机型与各种紧凑屏幕；
+* **灵动岛与安全区精确避让**：全面适配 `safeAreaLayoutGuide`，悬浮框与弹窗彻底避开系统状态栏与灵动岛，杜绝误触通知中心；
+* **一体化无缝暗黑背景**：自研 `ShowLogHubTabPanelBackgroundView` 贝塞尔双曲线闭合轮廓 + 暗黑轨道底槽，未选中 Tab 绝无底层透光与文字重影；
+* **高辨识度状态 Badge 与耗时直显**：网络列表项采用墨绿/深红胶囊 Badge 直显业务状态码，右上角直标响应耗时（如 `142ms`），排查异常一目了然；
+* **原生模块矩阵**：
+  1. **Network（网络控制台）**：支持扁平列表与 Path 路径分组切换、实时关键字模糊检索、日期日历筛选、一键清空日志。点选任意请求可查看 Request / Response / Headers / cURL 命令复制。
+  2. **Device（设备诊断看板）**：展示设备型号、系统版本、屏幕物理分辨率、CPU 核心数与瞬时负载、当前 App 物理内存驻留（Resident Memory）、沙盒磁盘空间、电量等。点击顶部“导出诊断报告”可一键生成 Markdown 格式报告并调用系统分享。
+  3. **FileBrowser（沙盒只读浏览）**：可视化浏览 App 沙盒目录，32KB 分页流式加载纯文本与 JSON，防止读取大日志文件撑爆内存。
+  4. **Custom Panels（自定义面板）**：业务方自由注入的扩展工具集合。
 
 ### 7.2 注册自定义调试面板 (`CustomPanelProvider`)
 

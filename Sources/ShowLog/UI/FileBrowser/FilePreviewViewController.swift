@@ -80,10 +80,12 @@ public final class FilePreviewViewController: UIViewController {
         shareBtn.addTarget(self, action: #selector(handleShare(_:)), for: .touchUpInside)
 
         closeBtn.setTitle("✕", for: .normal)
-        closeBtn.setTitleColor(ShowLogTheme.textPrimary, for: .normal)
+        closeBtn.setTitleColor(ShowLogTheme.textSecondary, for: .normal)
         closeBtn.titleLabel?.font = UIFont.systemFont(ofSize: 13, weight: .bold)
-        closeBtn.backgroundColor = ShowLogTheme.statusError
-        closeBtn.layer.cornerRadius = 6
+        closeBtn.backgroundColor = ShowLogTheme.bgPill
+        closeBtn.layer.cornerRadius = 7
+        closeBtn.layer.borderWidth = 1
+        closeBtn.layer.borderColor = ShowLogTheme.bgCardStroke.cgColor
         closeBtn.translatesAutoresizingMaskIntoConstraints = false
         closeBtn.addTarget(self, action: #selector(handleClose), for: .touchUpInside)
 
@@ -104,6 +106,8 @@ public final class FilePreviewViewController: UIViewController {
             dialogCard.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             dialogCard.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.90),
             dialogCard.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.78),
+            dialogCard.topAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.topAnchor, constant: 12),
+            dialogCard.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -12),
 
             titleLabel.topAnchor.constraint(equalTo: dialogCard.topAnchor, constant: 12),
             titleLabel.leadingAnchor.constraint(equalTo: dialogCard.leadingAnchor, constant: 12),

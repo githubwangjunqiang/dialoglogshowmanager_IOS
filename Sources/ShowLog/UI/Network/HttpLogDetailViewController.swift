@@ -75,10 +75,12 @@ public final class HttpLogDetailViewController: UIViewController {
 
         let closeBtn = UIButton(type: .custom)
         closeBtn.setTitle("✕", for: .normal)
-        closeBtn.setTitleColor(ShowLogTheme.textPrimary, for: .normal)
-        closeBtn.titleLabel?.font = UIFont.systemFont(ofSize: 14, weight: .bold)
-        closeBtn.backgroundColor = ShowLogTheme.statusError
-        closeBtn.layer.cornerRadius = 6
+        closeBtn.setTitleColor(ShowLogTheme.textSecondary, for: .normal)
+        closeBtn.titleLabel?.font = UIFont.systemFont(ofSize: 13, weight: .bold)
+        closeBtn.backgroundColor = ShowLogTheme.bgPill
+        closeBtn.layer.cornerRadius = 7
+        closeBtn.layer.borderWidth = 1
+        closeBtn.layer.borderColor = ShowLogTheme.bgCardStroke.cgColor
         closeBtn.translatesAutoresizingMaskIntoConstraints = false
         closeBtn.addTarget(self, action: #selector(handleClose), for: .touchUpInside)
 
@@ -164,6 +166,8 @@ public final class HttpLogDetailViewController: UIViewController {
             dialogCard.centerYAnchor.constraint(equalTo: view.centerYAnchor),
             dialogCard.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.95),
             dialogCard.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.88),
+            dialogCard.topAnchor.constraint(greaterThanOrEqualTo: view.safeAreaLayoutGuide.topAnchor, constant: 10),
+            dialogCard.bottomAnchor.constraint(lessThanOrEqualTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -10),
 
             headerTitle.topAnchor.constraint(equalTo: dialogCard.topAnchor, constant: 12),
             headerTitle.leadingAnchor.constraint(equalTo: dialogCard.leadingAnchor, constant: 12),

@@ -28,6 +28,7 @@ public final class ShowLogHubViewController: UIViewController, UIScrollViewDeleg
     private let throttler = ClickThrottler(intervalMs: ShowLogTheme.throttleMs)
 
     private let hubContainer = UIView()
+    private let tabBarTrackView = UIView()
     private let tabPanelBackground = ShowLogHubTabPanelBackgroundView()
     private let tabScrollView = UIScrollView()
     private let tabStackView = UIStackView()
@@ -36,6 +37,7 @@ public final class ShowLogHubViewController: UIViewController, UIScrollViewDeleg
 
     private var tabButtons: [UIButton] = []
     private var pageViews: [UIView] = []
+    private var hasInitialTabCentered = false
 
     private var networkView: HttpLogConsoleView?
     private var deviceView: AppDeviceInfoView?
@@ -67,7 +69,7 @@ public final class ShowLogHubViewController: UIViewController, UIScrollViewDeleg
 
     public override func viewDidLoad() {
         super.viewDidLoad()
-        view.backgroundColor = UIColor.black.withAlphaComponent(0.65)
+        view.backgroundColor = UIColor.black.withAlphaComponent(0.72)
         setupHubLayout()
         setupPages()
         selectTab(currentTab, animated: false)
@@ -75,7 +77,12 @@ public final class ShowLogHubViewController: UIViewController, UIScrollViewDeleg
 
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        updateSelectedTabOutline()
+        if !hasInitialTabCentered && tabScrollView.bounds.width > 0 {
+            hasInitialTabCentered = true
+            scrollTabToCenter(at: currentTab, animated: false)
+        } else {
+            updateSelectedTabOutline()
+        }
     }
 
     public override func dismiss(animated flag: Bool, completion: (() -> Void)? = nil) {
@@ -94,15 +101,25 @@ public final class ShowLogHubViewController: UIViewController, UIScrollViewDeleg
         hubContainer.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(hubContainer)
 
+        // Tab Bar 底层暗黑轨道槽，彻底杜绝未选中 Tab 区域透光与重影
+        tabBarTrackView.backgroundColor = ShowLogTheme.color(hex: 0x141418)
+        tabBarTrackView.layer.cornerRadius = 10
+        tabBarTrackView.layer.maskedCorners = [.layerMinXMinYCorner, .layerMaxXMinYCorner]
+        tabBarTrackView.clipsToBounds = true
+        tabBarTrackView.translatesAutoresizingMaskIntoConstraints = false
+        hubContainer.addSubview(tabBarTrackView)
+
         tabPanelBackground.translatesAutoresizingMaskIntoConstraints = false
         hubContainer.addSubview(tabPanelBackground)
 
-        // 右上角外挂红色关闭按钮
-        closeHookButton.setTitle("×", for: .normal)
-        closeHookButton.setTitleColor(.white, for: .normal)
-        closeHookButton.titleLabel?.font = UIFont.systemFont(ofSize: 20, weight: .bold)
-        closeHookButton.backgroundColor = ShowLogTheme.statusError
-        closeHookButton.layer.cornerRadius = 8
+        // 右上角优雅暗黑关闭按钮
+        closeHookButton.setTitle("✕", for: .normal)
+        closeHookButton.setTitleColor(ShowLogTheme.textSecondary, for: .normal)
+        closeHookButton.titleLabel?.font = UIFont.systemFont(ofSize: 13, weight: .bold)
+        closeHookButton.backgroundColor = ShowLogTheme.bgPill
+        closeHookButton.layer.cornerRadius = 7
+        closeHookButton.layer.borderWidth = 1
+        closeHookButton.layer.borderColor = ShowLogTheme.bgCardStroke.cgColor
         closeHookButton.touchAreaPadding = 12.0
         closeHookButton.translatesAutoresizingMaskIntoConstraints = false
         closeHookButton.addTarget(self, action: #selector(handleCloseHub), for: .touchUpInside)
@@ -148,20 +165,25 @@ public final class ShowLogHubViewController: UIViewController, UIScrollViewDeleg
         hubContainer.addSubview(pagesContainer)
 
         NSLayoutConstraint.activate([
-            hubContainer.centerXAnchor.constraint(equalTo: view.centerXAnchor),
-            hubContainer.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            hubContainer.widthAnchor.constraint(equalTo: view.widthAnchor, multiplier: 0.96),
-            hubContainer.heightAnchor.constraint(equalTo: view.heightAnchor, multiplier: 0.90),
+            hubContainer.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 6),
+            hubContainer.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -6),
+            hubContainer.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor, constant: 8),
+            hubContainer.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor, constant: -8),
 
             tabPanelBackground.topAnchor.constraint(equalTo: hubContainer.topAnchor),
             tabPanelBackground.bottomAnchor.constraint(equalTo: hubContainer.bottomAnchor),
             tabPanelBackground.leadingAnchor.constraint(equalTo: hubContainer.leadingAnchor),
             tabPanelBackground.trailingAnchor.constraint(equalTo: hubContainer.trailingAnchor),
 
-            closeHookButton.topAnchor.constraint(equalTo: hubContainer.topAnchor, constant: 2),
-            closeHookButton.trailingAnchor.constraint(equalTo: hubContainer.trailingAnchor, constant: -2),
-            closeHookButton.widthAnchor.constraint(equalToConstant: 36),
-            closeHookButton.heightAnchor.constraint(equalToConstant: 32),
+            tabBarTrackView.topAnchor.constraint(equalTo: hubContainer.topAnchor),
+            tabBarTrackView.leadingAnchor.constraint(equalTo: hubContainer.leadingAnchor),
+            tabBarTrackView.trailingAnchor.constraint(equalTo: hubContainer.trailingAnchor),
+            tabBarTrackView.heightAnchor.constraint(equalToConstant: 38),
+
+            closeHookButton.topAnchor.constraint(equalTo: hubContainer.topAnchor, constant: 3),
+            closeHookButton.trailingAnchor.constraint(equalTo: hubContainer.trailingAnchor, constant: -4),
+            closeHookButton.widthAnchor.constraint(equalToConstant: 32),
+            closeHookButton.heightAnchor.constraint(equalToConstant: 30),
 
             tabScrollView.topAnchor.constraint(equalTo: hubContainer.topAnchor),
             tabScrollView.leadingAnchor.constraint(equalTo: hubContainer.leadingAnchor),
@@ -248,15 +270,57 @@ public final class ShowLogHubViewController: UIViewController, UIScrollViewDeleg
         }
 
         if safeIndex < tabButtons.count {
-            let targetBtn = tabButtons[safeIndex]
-            tabScrollView.scrollRectToVisible(targetBtn.frame.insetBy(dx: -12, dy: 0), animated: animated)
+            scrollTabToCenter(at: safeIndex, animated: animated)
         }
         DispatchQueue.main.async { [weak self] in
             self?.updateSelectedTabOutline()
         }
     }
 
+    /// 自动将指定索引的 Tab 滑动到可滚动视口的水平正中间。
+    public func scrollTabToCenter(at index: Int, animated: Bool) {
+        guard index >= 0, index < tabButtons.count else { return }
+        let targetBtn = tabButtons[index]
+
+        tabStackView.layoutIfNeeded()
+        tabScrollView.layoutIfNeeded()
+
+        let scrollViewVisibleWidth = tabScrollView.bounds.width
+        guard scrollViewVisibleWidth > 0 else { return }
+
+        // 计算目标按钮在 StackView (即 ScrollView 内容坐标系) 中的中心点 X 坐标
+        let targetRectInStack = targetBtn.convert(targetBtn.bounds, to: tabStackView)
+        let btnCenterContentX = targetRectInStack.midX
+
+        // 期望让目标按钮中心处于可视区域中央
+        let targetOffsetX = btnCenterContentX - (scrollViewVisibleWidth / 2.0)
+
+        // 边界限制：避免超出左侧与右侧可滑动范围
+        let minOffsetX: CGFloat = -tabScrollView.contentInset.left
+        let maxContentWidth = max(tabScrollView.contentSize.width, tabStackView.bounds.width)
+        let maxOffsetX = max(minOffsetX, maxContentWidth - scrollViewVisibleWidth + tabScrollView.contentInset.right)
+        let clampedOffsetX = min(max(minOffsetX, targetOffsetX), maxOffsetX)
+
+        let targetPoint = CGPoint(x: clampedOffsetX, y: tabScrollView.contentOffset.y)
+        if animated {
+            if abs(tabScrollView.contentOffset.x - clampedOffsetX) > 0.5 {
+                tabScrollView.setContentOffset(targetPoint, animated: true)
+            } else {
+                updateSelectedTabOutline()
+            }
+        } else {
+            tabScrollView.contentOffset = targetPoint
+            updateSelectedTabOutline()
+        }
+    }
+
     public func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        if scrollView === tabScrollView {
+            updateSelectedTabOutline()
+        }
+    }
+
+    public func scrollViewDidEndScrollingAnimation(_ scrollView: UIScrollView) {
         if scrollView === tabScrollView {
             updateSelectedTabOutline()
         }
