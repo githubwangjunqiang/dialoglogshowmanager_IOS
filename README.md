@@ -22,6 +22,7 @@
 9. [Swift / Objective-C 混编与符号说明](#9-swift--objective-c-混编与符号说明)
 10. [代码混淆与安全加固配置（Anti-Obfuscation Rules）](#10-代码混淆与安全加固配置anti-obfuscation-rules)
 11. [API 核心参考速查表](#11-api-核心参考速查表)
+12. [版本历史与更新记录](#12-版本历史与更新记录)
 
 ---
 
@@ -428,6 +429,16 @@ ShowLog.initialize(...)
 | `ShowLog.registerCustomPanel(_ provider: CustomPanelProvider)` | 动态注册业务自定义扩展调试面板 |
 | `ShowLog.clearAllLogs()` | 清空本地已捕获的全部 HTTP 网络日志 |
 | `ShowLog.destroy()` | 销毁并释放 ShowLog 所占用的全部视图、定时器与数据库连接 |
+
+---
+
+## 12. 版本历史与更新记录
+
+| 版本号 | 发布日期 | 最低系统 | 核心特性与变更说明 |
+|:---|:---|:---|:---|
+| **`6.0.2`** | 2026-10-29 | iOS 13.0+ | **体验与交互升级版**：<br>1. **顶部 Tab 智能滑动居中**：点击或切换任意页签（网络/设备/自定义/文件），该 Tab 自动平滑滚动至视口正中央，完美适配带岛机型与各种紧凑屏幕；<br>2. **全景 Hub 安全区适配**：全面约束至 `safeAreaLayoutGuide`（上下避让 6pt、左右 8pt），彻底避开 iPhone 灵动岛和系统状态栏，杜绝误触；<br>3. **一体化视觉微重构**：底部增加深色暗黑轨道槽，彻底消除未选中 Tab 区域底层文字透光与重影；右上角关闭按钮重构为暗黑微边框胶囊样式（`#2C2C36` + `#33333D` 描边）；<br>4. **网络列表 Badge 与耗时直显**：状态码重构为墨绿（`200 OK`）与深红（`500/ERR`）胶囊 Badge，右上角直标请求耗时（如 `142ms`）；<br>5. **CocoaPods Trunk 官方发布**：已正式发布至 CocoaPods 官方源 `DialogLogShowManager`。 |
+| **`6.0.1`** | 2026-10-29 | iOS 13.0+ | **高稳定性修复版**：<br>1. **避免 ObjC 运行时方法命名冲突**：修复 `@objcMembers` 导致 `CustomPanelPageView.release()` / `FileBrowserView.release()` 意外重载 Objective-C `-[NSObject release]`，引发无限递归爆栈崩溃（SIGSEGV / EXC_BAD_ACCESS），规范重构为 `teardown()`；<br>2. **耗电优化**：`AppDeviceInfoCollector` 电池状态采集完成后主动恢复初始监控状态，杜绝后台无谓耗电；<br>3. **强拆包安全防御**：移除 SQLite 助手与详情页多处潜在强拆包，改用安全可选合并 `??`；<br>4. **iPad 弹窗锚点安全**：修复系统分享面板在 iPad 上因 presenter.view 强拆包可能导致的隐患。 |
+| **`6.0.0`** | 2026-10-28 | iOS 13.0+ | **首发企业级全景研发诊断中枢**：<br>1. **1:1 像素级对标 Android ShowLog v6.0**：原生 Swift 5.9+ / UIKit 编写，零第三方依赖；<br>2. **透明网络拦截与自定义业务裁决**：支持 URLSession / Alamofire 自动拦截与强契约 `HttpLogPayload` 手动上报，支持根据业务 JSON 自定义成功/失败判定；<br>3. **高性能 Hybrid-Read 仓储**：SQLite3 WAL 预写日志 + 500ms 定时聚合与单事务批量刷盘，支持多维检索与 cURL 导出；<br>4. **40+ 项设备全景看板**：实时监控硬件、系统、内存、CPU、磁盘并支持一键导出 Markdown 报告；<br>5. **沙盒文件只读浏览器**：防路径穿越安全校验 + 32KB 流式分页预览，支持 Documents/Library/Caches/tmp；<br>6. **业务自定义扩展**：开放 `CustomPanelProvider`，支持将业务私有调试工具无缝嵌入 Hub。 |
 
 ---
 
