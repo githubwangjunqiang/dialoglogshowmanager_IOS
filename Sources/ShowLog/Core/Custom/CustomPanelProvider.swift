@@ -18,11 +18,18 @@ import UIKit
 @objc
 public protocol CustomPanelProvider: NSObjectProtocol {
 
+    /// 自定义面板在 Hub 顶部展示的标题（可选，默认展示“自定义扩展”）。
+    @objc optional var panelTitle: String { get }
+
+    /// 自定义面板视图构建方法（可选）。
+    /// 若实现此方法，SDK 会自动将其添加到容器并撑满布局。
+    @objc optional func createPanelView() -> UIView
+
     /// 在 SDK 提供的承载父视图中填充业务自定义 UI。
     /// - Parameters:
     ///   - parent: SDK 提供的承载父容器视图，业务方应将自定义子视图添加到该容器中
     ///   - dialogController: 当前 ShowLog 调试中枢视图控制器，可调用 `dismiss(animated:completion:)` 关闭弹框
-    func onCreateView(parent: UIView, dialogController: UIViewController)
+    @objc optional func onCreateView(parent: UIView, dialogController: UIViewController)
 
     /// 面板销毁或调试弹框关闭时的清理回调（可选实现）。
     @objc optional func onDestroyView()

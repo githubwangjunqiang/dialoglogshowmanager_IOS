@@ -363,4 +363,57 @@ final class ShowLogTests: XCTestCase {
         hub.dismiss(animated: false)
         #endif
     }
+
+    // MARK: - 11. 开发者接入与文档推荐 API 契约测试 (Builder businessJudger & CustomHttpLogPayload)
+
+    private final class MockAutoPanel: NSObject, CustomPanelProvider {
+        var panelTitle: String { "自动面板" }
+        func createPanelView() -> UIView {
+            return UIView()
+        }
+    }
+
+    func testDeveloperFacingApisFromReadme() {
+        // 1. 测试 ShowLogConfig.Builder 链式配置 businessJudger
+        let judger = ClosureBusinessJudger { ctx in
+            if ctx.statusCode == 401 {
+                return .businessFailure(businessCode: "40101", errorMessage: "Token Expired")
+            }
+            if ctx.statusCode >= 200 && ctx.statusCode < 300 {
+                return .businessSuccess(businessCode: "\(ctx.statusCode)")
+            }
+            return .systemError(errorCode: "\(ctx.statusCode)", message: "Network Error")
+        }
+
+        let cfg = ShowLogConfig.Builder()
+            .businessJudger(judger)
+            .build()
+        XCTAssertNotNil(cfg.businessJudger)
+
+        ShowLog.initialize(config: cfg)
+        XCTAssertNotNil(ShowLog.getBusinessJudger())
+
+        // 2. 测试 CustomHttpLogPayload 开箱即用模型
+        let payload = CustomHttpLogPayload(
+            url: "https://api.example.com/v1/user/info",
+            method: "GET",
+            httpCode: 200,
+            message: "Success",
+            success: true,
+            durationMs: 45,
+            requestHeaders: ["X-Client": "iOS"],
+            responseHeaders: ["Content-Type": "application/json"],
+            requestBody: nil,
+            responseBody: "{\"code\": 0}",
+            error: nil
+        )
+        ShowLog.record(payload: payload)
+
+        // 3. 测试单参数 registerCustomPanel
+        let panel = MockAutoPanel()
+        ShowLog.registerCustomPanel(panel)
+        let reg = CustomPanelManager.shared.getRegistration()
+        XCTAssertEqual(reg.title, "自动面板")
+        XCTAssertNotNil(reg.provider)
+    }
 }

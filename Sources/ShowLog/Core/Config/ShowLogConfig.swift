@@ -39,6 +39,9 @@ public final class ShowLogConfig: NSObject {
     /// 是否自动将 ShowLogURLProtocol 注入到 URLSessionConfiguration.default / .ephemeral（默认 true）。
     public let enableURLSessionSwizzling: Bool
 
+    /// 可选的全局业务成功裁决拦截器。
+    public let businessJudger: HttpLogBusinessJudger?
+
     private init(builder: Builder) {
         self.maxDatabaseLogLimit = max(
             Self.MIN_DATABASE_LIMIT,
@@ -51,6 +54,7 @@ public final class ShowLogConfig: NSObject {
         self.fileBrowserRootPath = Self.normalizePath(builder.fileBrowserRootPathValue)
         self.fileBrowserTabTitle = Self.normalizeTitle(builder.fileBrowserTabTitleValue)
         self.enableURLSessionSwizzling = builder.enableURLSessionSwizzlingValue
+        self.businessJudger = builder.businessJudgerValue
         super.init()
     }
 
@@ -95,6 +99,7 @@ public final class ShowLogConfig: NSObject {
         fileprivate var fileBrowserRootPathValue: String?
         fileprivate var fileBrowserTabTitleValue: String?
         fileprivate var enableURLSessionSwizzlingValue: Bool = true
+        fileprivate var businessJudgerValue: HttpLogBusinessJudger?
 
         public override init() {
             super.init()
@@ -156,6 +161,24 @@ public final class ShowLogConfig: NSObject {
         @discardableResult
         public func enableURLSessionSwizzling(_ enable: Bool) -> Builder {
             self.enableURLSessionSwizzlingValue = enable
+            return self
+        }
+
+        /// 配置全局业务成功裁决拦截器（协议实例形式）。
+        @discardableResult
+        public func businessJudger(_ judger: HttpLogBusinessJudger?) -> Builder {
+            self.businessJudgerValue = judger
+            return self
+        }
+
+        /// 配置全局业务成功裁决拦截器（闭包形式）。
+        @discardableResult
+        public func businessJudgerBlock(_ block: ((HttpLogRequestContext) -> HttpLogJudgementResult)?) -> Builder {
+            if let block = block {
+                self.businessJudgerValue = ClosureBusinessJudger(block: block)
+            } else {
+                self.businessJudgerValue = nil
+            }
             return self
         }
 

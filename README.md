@@ -133,7 +133,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 #### 方式一：CocoaPods（官方公共源 - 推荐）
 ShowLog 已正式发布至 CocoaPods 官方 Specs 中心，在工程的 `Podfile` 中添加：
 ```ruby
-pod 'DialogLogShowManager', '~> 6.0.2'
+pod 'DialogLogShowManager', '~> 6.0.3'
 ```
 随后在终端执行：
 ```bash
@@ -151,18 +151,18 @@ pod install --repo-update
 ```text
 https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git
 ```
-在版本规则选择 **Exact: 6.0.2** 或 **Up to Next Major**。  
+在版本规则选择 **Exact: 6.0.3** 或 **Up to Next Major**。  
 若使用 `Package.swift` 管理依赖，请添加：
 ```swift
 dependencies: [
-    .package(url: "https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git", from: "6.0.2")
+    .package(url: "https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git", from: "6.0.3")
 ]
 ```
 
 #### 方式三：CocoaPods Git 直引方式
 如果不需要公共源索引，也可以直接指向 GitHub 仓库：
 ```ruby
-pod 'ShowLog', :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => '6.0.2'
+pod 'ShowLog', :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanager_IOS.git', :tag => '6.0.3'
 ```
 
 ### 4.2 配置参数全解 (`ShowLogConfig.Builder`)
@@ -201,7 +201,7 @@ pod 'ShowLog', :git => 'https://github.com/githubwangjunqiang/dialoglogshowmanag
 ShowLog 支持自定义业务裁决器，将这类报文在列表中直接标红显示：
 
 ```swift
-let judger: HttpLogBusinessJudger = { context in
+let judger: (HttpLogRequestContext) -> HttpLogJudgementResult = { context in
     // 检查响应内容是否包含业务失败码
     if let body = context.responseBody, body.contains("\"code\": 40101") {
         return .businessFailure(businessCode: "40101", errorMessage: "用户 Token 过期")
@@ -213,7 +213,7 @@ let judger: HttpLogBusinessJudger = { context in
 }
 
 let config = ShowLogConfig.Builder()
-    .businessJudger(judger)
+    .businessJudgerBlock(judger)
     .build()
 
 ShowLog.initialize(config: config)
@@ -223,28 +223,49 @@ ShowLog.initialize(config: config)
 
 ## 6. 非 URLSession / 自定义网络库手动上报（强契约）
 
-若应用采用 C++ 网络内核、Rust 底层库、gRPC 或 WebSocket，无法走 `URLProtocol` 拦截时，可通过实现强契约协议 `HttpLogPayload` 手动上报：
+若应用采用 C++ 网络内核、Rust 底层库、gRPC 或 WebSocket，无法走 `URLProtocol` 拦截时，可通过开箱即用的 `CustomHttpLogPayload` 或实现强契约协议 `HttpLogPayload` 手动上报：
 
+### 方式一：使用开箱即用的 `CustomHttpLogPayload` 模型（推荐）
 ```swift
 import ShowLog
 
-// 1. 自定义结构体遵循 HttpLogPayload 协议
-struct CustomNetworkEvent: HttpLogPayload {
-    var logId: String { UUID().uuidString }
-    var requestUrl: String { "https://grpc.api.example.com/stream" }
-    var requestMethod: String { "POST" }
-    var requestHeaders: [String : String] { ["Content-Type": "application/grpc"] }
-    var requestBody: String? { "{\"payload\": \"binary-data\"}" }
-    var responseHeaders: [String : String]? { ["grpc-status": "0"] }
-    var responseBody: String? { "{\"result\": \"success\"}" }
-    var httpStatusCode: Int { 200 }
-    var requestTimestamp: Int64 { Int64(Date().timeIntervalSince1970 * 1000) - 120 }
-    var responseTimestamp: Int64 { Int64(Date().timeIntervalSince1970 * 1000) }
-    var errorMessage: String? { nil }
-}
+// 1. 构建上报事件模型
+let event = CustomHttpLogPayload(
+    url: "https://grpc.api.example.com/stream",
+    method: "POST",
+    httpCode: 200,
+    message: "gRPC 调用成功",
+    success: true,
+    durationMs: 120,
+    requestHeaders: ["Content-Type": "application/grpc"],
+    responseHeaders: ["grpc-status": "0"],
+    requestBody: "{\"payload\": \"binary-data\"}",
+    responseBody: "{\"result\": \"success\"}"
+)
 
 // 2. 手动将日志推入 ShowLog 仓储管道
-ShowLog.record(payload: CustomNetworkEvent())
+ShowLog.record(payload: event)
+```
+
+### 方式二：实现强契约 `HttpLogPayload` 协议（编译器强制校验全部字段）
+```swift
+import ShowLog
+
+final class CustomGrpcEvent: NSObject, HttpLogPayload {
+    func getUrl() -> String { "https://grpc.api.example.com/stream" }
+    func getMethod() -> String { "POST" }
+    func getHttpCode() -> Int { 200 }
+    func getMessage() -> String { "gRPC 调用成功" }
+    func isSuccess() -> Bool { true }
+    func getDurationMs() -> Int64 { 120 }
+    func getRequestHeaders() -> [String: String]? { ["Content-Type": "application/grpc"] }
+    func getResponseHeaders() -> [String: String]? { ["grpc-status": "0"] }
+    func getRequestBody() -> Any? { "{\"payload\": \"binary-data\"}" }
+    func getResponseBody() -> Any? { "{\"result\": \"success\"}" }
+    func getError() -> Error? { nil }
+}
+
+ShowLog.record(payload: CustomGrpcEvent())
 ```
 
 ---
@@ -436,6 +457,7 @@ ShowLog.initialize(...)
 
 | 版本号 | 发布日期 | 最低系统 | 核心特性与变更说明 |
 |:---|:---|:---|:---|
+| **`6.0.3`** | 2026-10-29 | iOS 13.0+ | **对外 API 体验升级与契约对齐版**：<br>1. **配置构建器链式裁决**：`ShowLogConfig.Builder` 补充 `businessJudger(_:)` 与 `businessJudgerBlock(_:)` 链式配置方法，并在初始化时自动生效；<br>2. **便捷裁决工厂与属性别名**：`HttpLogJudgementResult` 增加 `.businessSuccess`、`.businessFailure`、`.systemError` 便捷工厂，`HttpLogRequestContext` 增加 `statusCode` 别名，对齐文档调用契约；<br>3. **自定义面板与强契约上报开箱即用**：新增开箱即用模型 `CustomHttpLogPayload`（免去手写 11 个协议方法）；`CustomPanelProvider` 协议增加 `createPanelView() -> UIView` 与可选 `panelTitle`，并新增单参数 `ShowLog.registerCustomPanel(_ provider)` 自动提取标题并撑满布局；<br>4. **主线程 UI 更新时序防延迟优化**：`ShowLogFloatWindow` 的 `attachAndShow` 与 `detachAndHide` 重构为在主线程时直接同步刷新，彻底消除跨 RunLoop 异步派发导致的状态读取延迟；<br>5. **全景 API 真实模拟器验证工作台**：重构 Demo 主界面，将文档中全部对外 API 分组做成独立可测试按钮，并内置 100% 通过的一键全自动化冒烟测试序列。 |
 | **`6.0.2`** | 2026-10-29 | iOS 13.0+ | **体验与交互升级版**：<br>1. **顶部 Tab 智能滑动居中**：点击或切换任意页签（网络/设备/自定义/文件），该 Tab 自动平滑滚动至视口正中央，完美适配带岛机型与各种紧凑屏幕；<br>2. **全景 Hub 安全区适配**：全面约束至 `safeAreaLayoutGuide`（上下避让 6pt、左右 8pt），彻底避开 iPhone 灵动岛和系统状态栏，杜绝误触；<br>3. **一体化视觉微重构**：底部增加深色暗黑轨道槽，彻底消除未选中 Tab 区域底层文字透光与重影；右上角关闭按钮重构为暗黑微边框胶囊样式（`#2C2C36` + `#33333D` 描边）；<br>4. **网络列表 Badge 与耗时直显**：状态码重构为墨绿（`200 OK`）与深红（`500/ERR`）胶囊 Badge，右上角直标请求耗时（如 `142ms`）；<br>5. **CocoaPods Trunk 官方发布**：已正式发布至 CocoaPods 官方源 `DialogLogShowManager`。 |
 | **`6.0.1`** | 2026-10-29 | iOS 13.0+ | **高稳定性修复版**：<br>1. **避免 ObjC 运行时方法命名冲突**：修复 `@objcMembers` 导致 `CustomPanelPageView.release()` / `FileBrowserView.release()` 意外重载 Objective-C `-[NSObject release]`，引发无限递归爆栈崩溃（SIGSEGV / EXC_BAD_ACCESS），规范重构为 `teardown()`；<br>2. **耗电优化**：`AppDeviceInfoCollector` 电池状态采集完成后主动恢复初始监控状态，杜绝后台无谓耗电；<br>3. **强拆包安全防御**：移除 SQLite 助手与详情页多处潜在强拆包，改用安全可选合并 `??`；<br>4. **iPad 弹窗锚点安全**：修复系统分享面板在 iPad 上因 presenter.view 强拆包可能导致的隐患。 |
 | **`6.0.0`** | 2026-10-28 | iOS 13.0+ | **首发企业级全景研发诊断中枢**：<br>1. **1:1 像素级对标 Android ShowLog v6.0**：原生 Swift 5.9+ / UIKit 编写，零第三方依赖；<br>2. **透明网络拦截与自定义业务裁决**：支持 URLSession / Alamofire 自动拦截与强契约 `HttpLogPayload` 手动上报，支持根据业务 JSON 自定义成功/失败判定；<br>3. **高性能 Hybrid-Read 仓储**：SQLite3 WAL 预写日志 + 500ms 定时聚合与单事务批量刷盘，支持多维检索与 cURL 导出；<br>4. **40+ 项设备全景看板**：实时监控硬件、系统、内存、CPU、磁盘并支持一键导出 Markdown 报告；<br>5. **沙盒文件只读浏览器**：防路径穿越安全校验 + 32KB 流式分页预览，支持 Documents/Library/Caches/tmp；<br>6. **业务自定义扩展**：开放 `CustomPanelProvider`，支持将业务私有调试工具无缝嵌入 Hub。 |

@@ -38,12 +38,17 @@ public final class ShowLog: NSObject {
         stateLock.unlock()
 
         #if canImport(UIKit)
-        DispatchQueue.main.async {
+        let updateUI = {
             if !enabled {
                 ShowLogFloatWindow.shared.detachAndHide()
             } else if cfg.showFloatingView {
                 ShowLogFloatWindow.shared.attachAndShow()
             }
+        }
+        if Thread.isMainThread {
+            updateUI()
+        } else {
+            DispatchQueue.main.async(execute: updateUI)
         }
         #endif
     }
@@ -62,6 +67,9 @@ public final class ShowLog: NSObject {
         stateLock.lock()
         currentConfig = config
         enabledFlag = config.enabled
+        if let judger = config.businessJudger {
+            businessJudger = judger
+        }
         stateLock.unlock()
 
         // 1. 初始化双层高性能仓储与 SQLite 数据库
@@ -74,12 +82,17 @@ public final class ShowLog: NSObject {
 
         // 3. 挂载或卸载全局免权限悬浮球
         #if canImport(UIKit)
-        DispatchQueue.main.async {
+        let updateFloatWindow = {
             if config.enabled && config.showFloatingView {
                 ShowLogFloatWindow.shared.attachAndShow()
             } else {
                 ShowLogFloatWindow.shared.detachAndHide()
             }
+        }
+        if Thread.isMainThread {
+            updateFloatWindow()
+        } else {
+            DispatchQueue.main.async(execute: updateFloatWindow)
         }
         #endif
     }
@@ -168,6 +181,13 @@ public final class ShowLog: NSObject {
 
     // MARK: - Custom Extension Panel
 
+    /// 注册业务自定义扩展面板（单参数协议形式，自动提取 provider.panelTitle 作为 Tab 标题）。
+    @objc(registerCustomPanelWithProvider:)
+    public static func registerCustomPanel(_ provider: CustomPanelProvider) {
+        let title = provider.panelTitle ?? CustomPanelManager.DEFAULT_TAB_TITLE
+        registerCustomPanel(title: title, provider: provider)
+    }
+
     /// 注册业务自定义扩展面板（协议实现形式）。
     public static func registerCustomPanel(title: String?, provider: CustomPanelProvider) {
         CustomPanelManager.shared.registerCustomPanel(title: title, provider: provider)
@@ -215,12 +235,17 @@ public final class ShowLog: NSObject {
     /// 设置悬浮球可见性。
     public static func setFloatWindowVisible(_ visible: Bool) {
         #if canImport(UIKit)
-        DispatchQueue.main.async {
+        let updateUI = {
             if visible {
                 ShowLogFloatWindow.shared.attachAndShow()
             } else {
                 ShowLogFloatWindow.shared.detachAndHide()
             }
+        }
+        if Thread.isMainThread {
+            updateUI()
+        } else {
+            DispatchQueue.main.async(execute: updateUI)
         }
         #endif
     }

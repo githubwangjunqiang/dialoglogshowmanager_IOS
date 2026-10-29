@@ -1,7 +1,7 @@
 Pod::Spec.new do |s|
   s.name             = 'DialogLogShowManager'
   s.module_name      = 'ShowLog'
-  s.version          = '6.0.2'
+  s.version          = '6.0.3'
   s.summary          = '企业级 iOS 全景研发诊断与调试中枢 SDK（网络监控 + 设备看板 + 自定义扩展 + 沙盒文件浏览）'
   s.description      = <<-DESC
   ShowLog iOS SDK 1:1 复刻 Android ShowLog v6.0 全景研发诊断中枢：

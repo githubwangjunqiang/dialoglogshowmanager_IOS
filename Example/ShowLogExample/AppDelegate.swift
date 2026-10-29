@@ -43,9 +43,20 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             return HttpLogJudgementResult.success("OK")
         }
 
-        // 3. 注册业务自定义扩展面板（演示环境切换、Mock 开关与主动关闭调试弹窗）
+        // 3. 注册业务自定义扩展面板（演示环境切换与主动关闭调试弹窗）
         ShowLog.registerCustomPanel(title: "环境与Mock") { parent, dialogController in
-            DemoCustomPanelBuilder.populate(into: parent, dialogController: dialogController)
+            let label = UILabel()
+            label.text = "🛠️ 宿主业务环境切换与 Mock 控制台\n当前环境：Staging 预发环境"
+            label.textColor = .white
+            label.numberOfLines = 0
+            label.textAlignment = .center
+            label.translatesAutoresizingMaskIntoConstraints = false
+            parent.addSubview(label)
+
+            NSLayoutConstraint.activate([
+                label.centerXAnchor.constraint(equalTo: parent.centerXAnchor),
+                label.centerYAnchor.constraint(equalTo: parent.centerYAnchor)
+            ])
         }
 
         return true

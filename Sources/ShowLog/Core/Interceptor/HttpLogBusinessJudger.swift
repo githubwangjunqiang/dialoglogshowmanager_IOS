@@ -48,6 +48,7 @@ public final class HttpLogRequestContext: NSObject {
     public func getPath() -> String { path }
     public func getMethod() -> String { method }
     public func getHttpCode() -> Int { httpCode }
+    public var statusCode: Int { httpCode }
     public func getDurationMs() -> Int64 { durationMs }
     public func getRequestHeaders() -> [String: String]? { requestHeaders }
     public func getResponseHeaders() -> [String: String]? { responseHeaders }
@@ -95,6 +96,21 @@ public final class HttpLogJudgementResult: NSObject {
 
     public static func failure(_ message: String?) -> HttpLogJudgementResult {
         return HttpLogJudgementResult(success: false, message: message ?? "业务请求失败")
+    }
+
+    /// 便捷业务成功裁决工厂（对齐文档推荐语法）。
+    public static func businessSuccess(businessCode: String = "200") -> HttpLogJudgementResult {
+        return HttpLogJudgementResult(success: true, message: "业务成功(code=\(businessCode))")
+    }
+
+    /// 便捷业务失败裁决工厂（对齐文档推荐语法）。
+    public static func businessFailure(businessCode: String, errorMessage: String) -> HttpLogJudgementResult {
+        return HttpLogJudgementResult(success: false, message: "\(errorMessage)(code=\(businessCode))")
+    }
+
+    /// 便捷系统/传输异常裁决工厂（对齐文档推荐语法）。
+    public static func systemError(errorCode: String, message: String) -> HttpLogJudgementResult {
+        return HttpLogJudgementResult(success: false, message: "\(message)(error=\(errorCode))")
     }
 }
 

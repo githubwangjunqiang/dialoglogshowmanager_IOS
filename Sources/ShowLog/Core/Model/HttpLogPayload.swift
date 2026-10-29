@@ -47,3 +47,58 @@ public protocol HttpLogPayload: NSObjectProtocol {
     /// 11. 异常错误对象（若发生 Error / NSError 传入此对象；成功请求明确 return nil 即可）。
     func getError() -> Error?
 }
+
+/// 开箱即用的强契约上报事件模型，免去手动实现全部协议方法的繁琐步骤。
+@objcMembers
+public class CustomHttpLogPayload: NSObject, HttpLogPayload {
+    public var url: String
+    public var method: String
+    public var httpCode: Int
+    public var message: String
+    public var success: Bool
+    public var durationMs: Int64
+    public var requestHeaders: [String: String]?
+    public var responseHeaders: [String: String]?
+    public var requestBody: Any?
+    public var responseBody: Any?
+    public var error: Error?
+
+    public init(
+        url: String,
+        method: String = "POST",
+        httpCode: Int = 200,
+        message: String = "OK",
+        success: Bool = true,
+        durationMs: Int64 = 0,
+        requestHeaders: [String: String]? = nil,
+        responseHeaders: [String: String]? = nil,
+        requestBody: Any? = nil,
+        responseBody: Any? = nil,
+        error: Error? = nil
+    ) {
+        self.url = url
+        self.method = method
+        self.httpCode = httpCode
+        self.message = message
+        self.success = success
+        self.durationMs = durationMs
+        self.requestHeaders = requestHeaders
+        self.responseHeaders = responseHeaders
+        self.requestBody = requestBody
+        self.responseBody = responseBody
+        self.error = error
+        super.init()
+    }
+
+    public func getUrl() -> String { url }
+    public func getMethod() -> String { method }
+    public func getHttpCode() -> Int { httpCode }
+    public func getMessage() -> String { message }
+    public func isSuccess() -> Bool { success }
+    public func getDurationMs() -> Int64 { durationMs }
+    public func getRequestHeaders() -> [String: String]? { requestHeaders }
+    public func getResponseHeaders() -> [String: String]? { responseHeaders }
+    public func getRequestBody() -> Any? { requestBody }
+    public func getResponseBody() -> Any? { responseBody }
+    public func getError() -> Error? { error }
+}

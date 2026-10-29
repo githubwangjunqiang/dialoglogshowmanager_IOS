@@ -111,7 +111,7 @@ public final class ShowLogFloatWindow: UIWindow {
     }
 
     public func attachAndShow() {
-        DispatchQueue.main.async {
+        let action = {
             guard ShowLog.isEnabled(), ShowLog.getConfig().showFloatingView else {
                 self.detachAndHide()
                 return
@@ -122,15 +122,25 @@ public final class ShowLogFloatWindow: UIWindow {
             self.floatButton.isHidden = false
             self.clampFloatButtonToBounds(containerSize: self.bounds.size, animated: false)
         }
+        if Thread.isMainThread {
+            action()
+        } else {
+            DispatchQueue.main.async(execute: action)
+        }
     }
 
     public func detachAndHide() {
-        DispatchQueue.main.async {
+        let action = {
             if let presented = self.rootViewController?.presentedViewController {
                 presented.dismiss(animated: false)
             }
             self.floatButton.isHidden = true
             self.isHidden = true
+        }
+        if Thread.isMainThread {
+            action()
+        } else {
+            DispatchQueue.main.async(execute: action)
         }
     }
 

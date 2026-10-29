@@ -129,7 +129,18 @@ public final class CustomPanelPageView: UIView {
         emptyGuideScroll.isHidden = true
 
         isBinding = true
-        provider.onCreateView(parent: contentContainer, dialogController: hostVC)
+        if let customView = provider.createPanelView?() {
+            customView.translatesAutoresizingMaskIntoConstraints = false
+            contentContainer.addSubview(customView)
+            NSLayoutConstraint.activate([
+                customView.topAnchor.constraint(equalTo: contentContainer.topAnchor),
+                customView.bottomAnchor.constraint(equalTo: contentContainer.bottomAnchor),
+                customView.leadingAnchor.constraint(equalTo: contentContainer.leadingAnchor),
+                customView.trailingAnchor.constraint(equalTo: contentContainer.trailingAnchor)
+            ])
+        } else {
+            provider.onCreateView?(parent: contentContainer, dialogController: hostVC)
+        }
         isBinding = false
 
         if teardownPending {
